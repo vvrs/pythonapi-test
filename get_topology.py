@@ -154,8 +154,6 @@ def main():
 	ys = waypoints[:,1]
 	graph,id_map = build_graph(topology)
 
-	graph
-
 	axes = plt.gca()
 	axes.set_xlim(-500, 500)
 	axes.set_ylim(-500, +500)

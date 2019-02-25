@@ -44,24 +44,14 @@ class purePursuit:
 		self.car_current_y = None 
 		self.car_current_heading = None
 		self.current_speed = None
-		self.steering_ratio = rospy.get_param("/vehicle/twist_controller/steering_ratio")
-		rospy.Subscriber("/vehicle/perfect_gps/utm",Vector3Stamped,self.callback_utm)
-		rospy.Subscriber("/vehicle/perfect_gps/heading",Float64,self.callback_heading)
-		rospy.Subscriber("/vehicle/twist",TwistStamped,self.callback_twist)
+		
+		# Get vehicle location from CARLA
+
+		# Initialize vehicle controller message
 
 
 
-		time.sleep(0.5)
 
-		self.goalxpub = rospy.Publisher('/goalx',Float64,queue_size=10)
-		self.goalypub = rospy.Publisher('/goaly',Float64,queue_size=10)
-
-		self.steering_pub = rospy.Publisher('/vehicle/steering_cmd', SteeringCmd, queue_size=1)
-		self.throttle_pub = rospy.Publisher('/vehicle/throttle_cmd', ThrottleCmd, queue_size=1)
-		self.gear_pub = rospy.Publisher('/vehicle/gear_cmd', GearCmd, queue_size=1)
-		self.brake_pub = rospy.Publisher('/vehicle/brake_cmd', BrakeCmd, queue_size=1)
-
-		time.sleep(0.5)
 
 		self.points = points
 		
