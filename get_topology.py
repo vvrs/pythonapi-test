@@ -133,10 +133,10 @@ def main():
 
 	# vehicle
 	vehicle = blueprint_library.filter('vehicle.lin*')
-
+	vehicle = vehicle[0]
 	# get one of the possible spawning locations
-	transform = random.choice(world.get_map().get_spawn_points())
-	print transform
+	# transform = random.choice(world.get_map().get_spawn_points())
+	# print transform
 	# plt.show()
 	
 
@@ -147,12 +147,31 @@ def main():
 
 	# Build waypoint graph
 	topology,waypoints = get_topology(_map)
-	print topology[0].keys()#,type(topology[0])
+	# print topology[0].keys()#,type(topology[0])
 
 
 	xs = waypoints[:,0]
 	ys = waypoints[:,1]
 	graph,id_map = build_graph(topology)
+	e1 = graph.edges()[0]
+	e1_data = graph.get_edge_data(e1[0],e1[1])
+
+	source_location = e1_data['entry']
+	waypoint_next_to_source = e1_data['path'][0]
+
+	source_vector = e1_data['entry_vector']
+
+
+	source_yaw = np.degrees(np.arctan2(source_vector[1],source_vector[0]))
+
+	transform = carla.Transform(carla.Location(x=source_location[0], y=source_location[1], z=2), carla.Rotation(yaw=source_yaw))
+
+	vehicle = world.try_spawn_actor(vehicle,transform)
+	print vehicle
+	print source_location
+	print waypoint_next_to_source
+	print source_yaw
+	# print graph.get_edge_data()
 
 	axes = plt.gca()
 	axes.set_xlim(-500, 500)
