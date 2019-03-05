@@ -165,12 +165,12 @@ def main():
 	source_yaw = np.degrees(np.arctan2(source_vector[1],source_vector[0]))
 
 	transform = carla.Transform(carla.Location(x=source_location[0], y=source_location[1], z=2), carla.Rotation(yaw=source_yaw))
+	print transform.location.x
+	vehicle = world.spawn_actor(vehicle,transform)
 
-	vehicle = world.try_spawn_actor(vehicle,transform)
-	print vehicle
-	print source_location
-	print waypoint_next_to_source
-	print source_yaw
+	
+
+
 	# print graph.get_edge_data()
 
 	axes = plt.gca()
