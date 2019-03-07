@@ -105,7 +105,8 @@ def main(argv):
 	world = client.get_world()
 
 	
-	# p is the path - publish p (global path) as rosmsg
+	# namespace - 'carla'
+
 	node = globalPathServer(world,'carla')
 
 	while not rospy.is_shutdown():
