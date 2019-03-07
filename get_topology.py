@@ -9,11 +9,12 @@ import time
 import networkx as nx
 import math
 # plt.ion()
-
+global debug
+debug = 0
 def unit_vector(point1, point2):
 
-	x1, y1 = point1
-	x2, y2 = point2
+	x1, y1, _ = point1
+	x2, y2, _ = point2
 
 	vector = (x2 - x1, y2 - y1)
 	vector_mag = math.sqrt(vector[0]**2 + vector[1]**2)
@@ -30,11 +31,15 @@ def get_topology(map):
 	for segment in _topology:
 		x1 = segment[0].transform.location.x
 		y1 = segment[0].transform.location.y
+		z1 = segment[0].transform.location.z
+
 		x2 = segment[1].transform.location.x
 		y2 = segment[1].transform.location.y
+		z2 = segment[1].transform.location.z
+
 		seg_dict = dict()
-		seg_dict['entry'] = (x1, y1)
-		seg_dict['exit'] = (x2, y2)
+		seg_dict['entry'] = (x1, y1, z1)
+		seg_dict['exit'] = (x2, y2, z2)
 		seg_dict['path'] = []
 		wp1 = segment[0]
 		wp2 = segment[1]
@@ -44,7 +49,8 @@ def get_topology(map):
 		while w.transform.location.distance(endloc) > 1:
 			x = w.transform.location.x
 			y = w.transform.location.y
-			seg_dict['path'].append((x, y))
+			z = w.transform.location.z
+			seg_dict['path'].append((x, y, z))
 			w = w.next(1)[0]
 
 		topology.append(seg_dict)
@@ -104,20 +110,29 @@ def get_shortest_path(graph, source, destination):
 	p = nx.shortest_path(graph,source=source,target=destination)
 	final_path_x = []
 	final_path_y = []
+	final_path_z = []
 	for i in range(len(p)-1):
 		edge_ =  graph.get_edge_data(p[i],p[i+1])
 		# waypoint_ = edge_['entry']
 		path_ = edge_['path']
 		path_ = np.array(path_)
+
+		if debug:
+			print __file__, "path ",path_
+
 		try:
 			xs = path_[:,0]
 			ys = path_[:,1]
+			zs = path_[:,2]
 			final_path_x.extend(list(xs))
 			final_path_y.extend(list(ys))
+			final_path_z.extend(list(zs))
 		except IndexError:
 			pass
 			
 	final_path_x = np.array(final_path_x).reshape(len(final_path_x),1)
 	final_path_y = np.array(final_path_y).reshape(len(final_path_y),1)
-	return np.hstack((final_path_x,final_path_y))
+	final_path_z = np.array(final_path_z).reshape(len(final_path_z),1)
+
+	return np.hstack((final_path_x, final_path_y, final_path_z))
 
