@@ -106,7 +106,6 @@ def main(argv):
 
 	
 	# namespace - 'carla'
-
 	node = globalPathServer(world,'carla')
 
 	while not rospy.is_shutdown():

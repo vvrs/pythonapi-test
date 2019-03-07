@@ -8,7 +8,7 @@ import time
 
 import networkx as nx
 import math
-# plt.ion()
+
 global debug
 debug = 0
 def unit_vector(point1, point2):
