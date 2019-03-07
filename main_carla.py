@@ -36,11 +36,13 @@ Use ARROWS or WASD keys for control.
 # -- imports -------------------------------------------------------------------
 # ==============================================================================
 
-
 from __future__ import print_function
+
+import rospy
+
 import carla
 from carla import ColorConverter as cc
-
+from GlobalPathCarla2ROS import globalPathServer
 import networkx as nx
 from get_topology import *
 import time
@@ -53,6 +55,7 @@ import math
 import random
 import re
 import weakref
+
 
 try:
 	import pygame
@@ -632,19 +635,21 @@ def main_loop(args):
 		path = closestPoint(points)
 		ind = path.closest_node(initial_location_)
 		snode = id_map[tuple(points[ind])]
-		
+		dnode = id_map[random.choice(id_map.keys())]
 
+		print(snode,dnode)
 
+		node = globalPathServer(world.world,'carla',snode,dnode)
 
-
-		clock = pygame.time.Clock()
-		while True:
+		while not rospy.is_shutdown():
+			clock = pygame.time.Clock()
 			clock.tick_busy_loop(60)
 			# if controller.parse_events(client, world, clock):
 			#     return
 			world.tick(clock)
 			world.render(display)
 			pygame.display.flip()
+			rospy.spin()
 
 	finally:
 

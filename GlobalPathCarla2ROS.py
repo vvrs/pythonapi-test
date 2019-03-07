@@ -22,7 +22,7 @@ from get_topology import *
 
 class globalPathServer(object):
 	"""Global is published everytime there is a request for global path over /get_global_path topic"""
-	def __init__(self, world = " ", ns = " "):
+	def __init__(self, world = " ", ns = " ",source=0,destination=14):
 		# super(GlobalPathServer, self).__init__()
 
 		self.ns = ns
@@ -34,8 +34,8 @@ class globalPathServer(object):
 		graph,id_map = build_graph(topology)
 
 		# get source and destination location from user (invoke while creating the object)
-		self.source = 0
-		self.destination = 14
+		self.source = source
+		self.destination = destination
 
 		self.p = get_shortest_path(graph, self.source, self.destination) 
 
