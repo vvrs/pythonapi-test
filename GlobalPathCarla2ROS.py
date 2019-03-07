@@ -67,7 +67,7 @@ class globalPathServer(object):
 			pose.position.x = carla_path[i][0]
 			pose.position.y = carla_path[i][1]
 			pose.position.z = carla_path[i][1]
-			pose.orientation = self.__directionFromTwoPointsQuaternion(carla_path[i],carla_path[i+1])
+			pose.orientation = self.directionFromTwoPointsQuaternion(carla_path[i],carla_path[i+1])
 
 			posestamped.pose = pose 
 
@@ -79,7 +79,7 @@ class globalPathServer(object):
 		pose.position.x = carla_path[-1][0]
 		pose.position.y = carla_path[-1][1]
 		pose.position.z = 0;
-		pose.orientation = self.__directionFromTwoPointsQuaternion(carla_path[-1],carla_path[-1])
+		pose.orientation = self.directionFromTwoPointsQuaternion(carla_path[-1],carla_path[-1])
 		posestamped.pose = pose
 
 		poses.append(posestamped)
@@ -91,7 +91,7 @@ class globalPathServer(object):
 		self.path_publisher.publish(self.path)
 
 	@staticmethod
-	def  __directionFromTwoPointsQuaternion(p1,p2):
+	def  directionFromTwoPointsQuaternion(p1,p2):
 		angle_ = np.arctan2(p2[1]-p1[1],p2[0]-p1[0])
 		q = quaternion_from_euler(0, 0, angle_)
 		quat_msg = Quaternion(q[0], q[1], q[2], q[3])
