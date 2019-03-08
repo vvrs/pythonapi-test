@@ -31,13 +31,13 @@ class globalPathServer(object):
 
 		# Build waypoint graph
 		topology,waypoints = get_topology(_map)
-		graph,id_map = build_graph(topology)
+		self.graph,self.id_map = build_graph(topology)
 
 		# get source and destination location from user (invoke while creating the object)
 		self.source = source
 		self.destination = destination
 
-		self.p = get_shortest_path(graph, self.source, self.destination) 
+		self.p = get_shortest_path(self.graph, self.source, self.destination) 
 
 		rospy.init_node('{}_path_server'.format(self.ns), anonymous = True)
 		rospy.Subscriber('{}/get_global_path'.format(self.ns), String, self.callback_update)
@@ -47,7 +47,6 @@ class globalPathServer(object):
 
 	def makePathMessage(self):
 		
-
 		carla_path = self.p
 		# posestamped required header to be set... 
 		# Sequence Number - increase every time this function is called
@@ -89,6 +88,19 @@ class globalPathServer(object):
 	def callback_update(self, data):
 		self.makePathMessage()
 		self.path_publisher.publish(self.path)
+
+	def plot(self):
+		mapk = self.id_map.keys()
+		srcind = self.id_map.values().index(self.source)
+		destind = self.id_map.values().index(self.destination)
+		source = mapk[srcind]
+		dest = mapk[destind]
+
+		plt.plot(source[0],source[1],'go--', linewidth=2, markersize=12)
+		plt.plot(dest[0],dest[1],'ro--', linewidth=2, markersize=12)
+
+		plt.plot(self.p[:,0],self.p[:,1])
+		plt.show()
 
 	@staticmethod
 	def  directionFromTwoPointsQuaternion(p1,p2):

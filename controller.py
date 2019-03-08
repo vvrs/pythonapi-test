@@ -5,6 +5,12 @@ import numpy as np
 import time
 import sys
 
+import rospy
+from std_msgs.msg import String
+from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion, Twist
+from nav_msgs.msg import Path, Odometry
+from tf.transformations import quaternion_from_euler
+from ackermann_msgs.msg import AckermannDrive
 
 class closestPoint:
 	def __init__(self, points):
@@ -24,7 +30,7 @@ class purePursuit:
 
 		rospy.loginfo("initializing the node...")
 		time.sleep(0.5)
-		rospy.init_node("purePursuit_node",anonymous=True)
+		# rospy.init_node("purePursuit_node",anonymous=True)
 
 		self.look_ahead_distance = 10
 
@@ -48,42 +54,25 @@ class purePursuit:
 		# Get vehicle location from CARLA
 
 		# Initialize vehicle controller message
+		rospy.Subscriber("/carla/ego_vehicle/odometry", Odometry, self.callback_odom)
 
 
-
-
+		self.cmd_pub = rospy.Publisher('/carla/ego_vehicle/ackermann_cmd', AckermannDrive, queue_size=1)
 
 		self.points = points
 		
 
-	def callback_utm(self,data):
-		if not self.init_xy:
-			self.car_init_x = data.vector.x
-			self.car_init_y = data.vector.y
-			# self.car_current_x = data.vector.x
-			# self.car_current_y = data.vector.y
-			self.init_xy = True
-			print "Initial position:: ",self.car_init_x,self.car_init_y 
+	def callback_odom(self,data):
+		
+		self.car_current_x = data.pose.pose.position.x
+		self.car_current_y = data.pose.pose.position.y
 
-		else:
-			self.car_current_x = data.vector.x - self.car_init_x
-			self.car_current_y = data.vector.y - self.car_init_y
-		# print "Cureent position:: ",self.car_current_x,self.car_current_y 
-
-
-	def callback_heading(self,data):
-
-		if not self.init_heading:
-			self.car_init_heading = np.deg2rad(data.data) - (np.pi/2)
-			# self.car_current_heading = data.data
-			self.init_heading = True
-
-		else:
-			# self.car_current_heading = np.deg2rad(data.data) - (np.pi/2)
-			self.car_current_heading = (np.pi/2) - np.deg2rad(data.data)
-
-	def callback_twist(self,data):
 		self.current_speed = data.twist.linear.x
+
+		quaternion = data.pose.orientation
+		euler = tf.transformations.euler_from_quaternion(quaternion)
+		self.car_current_heading = euler[2]
+
 
 	def _controller(self):
 
@@ -164,12 +153,17 @@ class purePursuit:
 		print "throttle and steering angle :: ",ai,di
 		print "\n\n"
 
-		throttle_msg = make_throttle_msg(ai)
-		steering_msg = make_steering_msg(di)
-		brake_msg = make_brake_msg()
-		self.throttle_pub.publish(throttle_msg)
-		self.steering_pub.publish(steering_msg)
-		self.brake_pub.publish(brake_msg)
+		ackermann_cmd_msg = AckermannDrive()
+		ackermann_cmd_msg.steering = di 
+		ackermann_cmd_msg.speed = ai 
+
+		self.cmd_pub.publish(ackermann_cmd_msg)
+		# throttle_msg = make_throttle_msg(ai)
+		# steering_msg = make_steering_msg(di)
+		# brake_msg = make_brake_msg()
+		# self.throttle_pub.publish(throttle_msg)
+		# self.steering_pub.publish(steering_msg)
+		# self.brake_pub.publish(brake_msg)
 
 		rospy.on_shutdown(self.stopOnShutdown)
 	def stopOnShutdown(self):

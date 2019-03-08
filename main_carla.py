@@ -1,3 +1,5 @@
+# "manual_control.py" from Carla PythonAPI is modified to work with ROS Messages
+
 
 """
 Welcome to CARLA manual control.
@@ -639,17 +641,20 @@ def main_loop(args):
 
 		print(snode,dnode)
 
-		node = globalPathServer(world.world,'carla',snode,dnode)
-
-		while not rospy.is_shutdown():
+		# node = globalPathServer(world.world,'carla',snode,dnode)
+		# node.plot()
+		# r = rospy.Rate(10)
+		# while not rospy.is_shutdown():
+		while  True:
 			clock = pygame.time.Clock()
 			clock.tick_busy_loop(60)
-			# if controller.parse_events(client, world, clock):
-			#     return
+			# # if controller.parse_events(client, world, clock):
+			# #     return
+			# print('render...')
 			world.tick(clock)
 			world.render(display)
 			pygame.display.flip()
-			rospy.spin()
+			# r.sleep()
 
 	finally:
 
@@ -668,6 +673,7 @@ def main_loop(args):
 
 
 def main():
+	rospy.init_node('main_carla')
 	argparser = argparse.ArgumentParser(
 		description='CARLA Manual Control Client')
 	argparser.add_argument(
@@ -699,7 +705,7 @@ def main():
 		'--filter',
 		metavar='PATTERN',
 		default='vehicle.*',
-		help='actor filter (default: "vehicle.*")')
+		help='actor filter (default: "vehicle.lincoln*")')
 	args = argparser.parse_args()
 
 	args.width, args.height = [int(x) for x in args.res.split('x')]
