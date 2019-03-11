@@ -37,7 +37,9 @@ def main(argv):
 
 ###### Test
 
-Run carla server  
+Run `roscore`  
+
+Goto carla source folder and run carla server  
 
 ```bash 
 ./CarlaUE4.sh -windowed -ResX=320 -ResY=240 -benchmark -fps=10 
@@ -52,5 +54,5 @@ python main_carla.py
 Launch carla_ros_bridge  
 
 ```bash 
-	roslaunch carla_ros_bridge client.launch
+roslaunch carla_ros_bridge client.launch
 ```
