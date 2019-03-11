@@ -33,3 +33,24 @@ def main(argv):
 	while not rospy.is_shutdown():
 		rospy.spin()
 ```
+
+
+###### Test
+
+Run carla server  
+
+```bash 
+./CarlaUE4.sh -windowed -ResX=320 -ResY=240 -benchmark -fps=10 
+```
+
+Run carla client, this should spawn an actor
+
+```bash
+python main_carla.py 
+```
+
+Launch carla_ros_bridge  
+
+```bash 
+	roslaunch carla_ros_bridge client.launch
+```
