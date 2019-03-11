@@ -9,7 +9,6 @@ from nav_msgs.msg import Path
 
 import numpy as np
 
-import GlobalPathCarla2ROS as gpcr 
 import controller as cn 
 
 class Navigation(object):

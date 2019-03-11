@@ -9,6 +9,7 @@ import carla
 import time
 import random 
 import sys
+import threading
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -38,12 +39,13 @@ class globalPathServer(object):
 		self.destination = destination
 
 		self.p = get_shortest_path(self.graph, self.source, self.destination) 
-
+		self.plot()
 		rospy.init_node('{}_path_server'.format(self.ns), anonymous = True)
 		rospy.Subscriber('{}/get_global_path'.format(self.ns), String, self.callback_update)
 		self.path_publisher = rospy.Publisher('{}/global_path'.format(self.ns), Path, queue_size = 10)
 
 		self.path = Path()
+
 
 	def makePathMessage(self):
 		

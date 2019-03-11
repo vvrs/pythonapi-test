@@ -10,7 +10,7 @@ import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion, Twist
 from nav_msgs.msg import Path, Odometry
-from tf.transformations import quaternion_from_euler
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from ackermann_msgs.msg import AckermannDrive
 
 import logging
@@ -34,7 +34,10 @@ class closestPoint:
 			# logging.debug("Points type: {}".format(type(nodes)))
 			# logging.debug("Points array {0}\n".format(nodes.size()))
 			# logging.debug("Node type: {0} content: {1} \n".format(type(node),node))
-		dist_2 = np.sum((nodes - node)**2, axis=1)
+		try:
+			dist_2 = np.sum((nodes - node)**2, axis=1)
+		except TypeError:
+			dist_2 = np.sum((nodes - (0,0))**2, axis=1)
 		return np.argmin(dist_2)
 
 class purePursuit:
@@ -47,7 +50,7 @@ class purePursuit:
 
 		self.look_ahead_distance = 10
 
-		self.target_speed = 5
+		self.target_speed = 1
 
 		self.k = 0.1
 		self.kp = 1
@@ -67,9 +70,9 @@ class purePursuit:
 		# Get vehicle location from CARLA
 
 		# Initialize vehicle controller message
-		rospy.Subscriber("/carla/ego_vehicle/odometry", Odometry, self.callback_odom)
-
-
+		# data = rospy.wait_for_message("/carla/ego_vehicle/odometry", Odometry)
+		# print data
+		# rospy.Subscriber("/carla/ego_vehicle/odometry", Odometry, self.callback_odom)
 		self.cmd_pub = rospy.Publisher('/carla/ego_vehicle/ackermann_cmd', AckermannDrive, queue_size=1)
 
 		self.points = points
@@ -77,6 +80,7 @@ class purePursuit:
 
 	def callback_odom(self,data):
 		
+
 		self.car_current_x = data.pose.pose.position.x
 		self.car_current_y = data.pose.pose.position.y
 
@@ -88,6 +92,25 @@ class purePursuit:
 
 
 	def _controller(self):
+
+		############################### FIX #########################################
+		data = rospy.wait_for_message("/carla/ego_vehicle/odometry", Odometry)
+
+		# print data
+
+		self.car_current_x = data.pose.pose.position.x
+		self.car_current_y = data.pose.pose.position.y
+
+		self.current_speed = data.twist.twist.linear.x
+
+		quaternion = [data.pose.pose.orientation.x,\
+					   data.pose.pose.orientation.y,\
+					   data.pose.pose.orientation.z,\
+					   data.pose.pose.orientation.w]
+		euler = euler_from_quaternion(quaternion)
+		# euler = tf.transformations.euler_from_quaternion(quaternion)
+		self.car_current_heading = euler[2]
+		##############################################################################
 
 		path = closestPoint(self.points)
 		ind = path.closest_node((self.car_current_x,self.car_current_y))
@@ -112,8 +135,8 @@ class purePursuit:
 		near_x = self.points[(ind)%len(self.points)][0]
 		near_y = self.points[(ind)%len(self.points)][1]
 
-		self.goalxpub.publish(goal_x)
-		self.goalypub.publish(goal_y)
+		# self.goalxpub.publish(goal_x)
+		# self.goalypub.publish(goal_y)
 
 		distance = sqrt((self.car_current_x-goal_x)**2 + (self.car_current_y-goal_y)**2)
 		distance2 = sqrt((near_x-goal_x)**2 + (near_y-goal_y)**2)
@@ -148,6 +171,7 @@ class purePursuit:
 		self.throttle = self._PIDControl(self.target_speed,self.current_speed)
 		# self.throttle = min(self.throttle,0.2)
 		# self.steering = np.arctan(2*L*sin(error)/(kl*self.throttle))
+		self.steering_ratio = 1
 		self.steering = self.steering_ratio * np.arctan2(2*L*sin(error),Lf)
 		# self.steering = error
 
@@ -167,7 +191,7 @@ class purePursuit:
 		print "\n\n"
 
 		ackermann_cmd_msg = AckermannDrive()
-		ackermann_cmd_msg.steering = di 
+		ackermann_cmd_msg.steering_angle = di 
 		ackermann_cmd_msg.speed = ai 
 
 		self.cmd_pub.publish(ackermann_cmd_msg)
@@ -183,16 +207,15 @@ class purePursuit:
 		ai = 0
 		di = 0
 
-		throttle_msg = make_throttle_msg(ai)
-		steering_msg = make_steering_msg(di)
-		brake_msg = make_brake_msg(1)
-		self.throttle_pub.publish(throttle_msg)
-		self.steering_pub.publish(steering_msg)
-		self.brake_pub.publish(brake_msg)
+		ackermann_cmd_msg = AckermannDrive()
+		ackermann_cmd_msg.steering_angle = di 
+		ackermann_cmd_msg.speed = ai 
 
-		time.sleep(1)
-		reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
-		reset_world()
+		self.cmd_pub.publish(ackermann_cmd_msg)
+
+		# time.sleep(1)
+		# reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
+		# reset_world()
 		# print "exiting..."
 		rospy.signal_shutdown('Quit')
 		# print "is shutdown :: ",rospy.is_shutdown()
