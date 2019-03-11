@@ -5,6 +5,7 @@ import numpy as np
 import time
 import sys
 
+
 import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion, Twist
@@ -12,6 +13,11 @@ from nav_msgs.msg import Path, Odometry
 from tf.transformations import quaternion_from_euler
 from ackermann_msgs.msg import AckermannDrive
 
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+global debug
+debug = 1
 class closestPoint:
 	def __init__(self, points):
 		self.points = points
@@ -21,6 +27,13 @@ class closestPoint:
 
 	def closest_node(self, node):
 		nodes = self.points
+		# print nodes
+		print node
+		# if debug:
+		# 	print nodes
+			# logging.debug("Points type: {}".format(type(nodes)))
+			# logging.debug("Points array {0}\n".format(nodes.size()))
+			# logging.debug("Node type: {0} content: {1} \n".format(type(node),node))
 		dist_2 = np.sum((nodes - node)**2, axis=1)
 		return np.argmin(dist_2)
 
@@ -28,7 +41,7 @@ class purePursuit:
 
 	def __init__(self,points):
 
-		rospy.loginfo("initializing the node...")
+		rospy.loginfo("initializing pure pursuit node...")
 		time.sleep(0.5)
 		# rospy.init_node("purePursuit_node",anonymous=True)
 

@@ -40,7 +40,7 @@ Use ARROWS or WASD keys for control.
 
 from __future__ import print_function
 
-import rospy
+# import rospy
 
 import carla
 from carla import ColorConverter as cc
@@ -246,7 +246,7 @@ class HUD(object):
 		collision = [colhist[x + self.frame_number - 200] for x in range(0, 200)]
 		max_col = max(1.0, max(collision))
 		collision = [x / max_col for x in collision]
-		vehicles = world.world.get_actors().filter('vehicle.*')
+		vehicles = world.world.get_actors().filter('vehicle.lin*')
 		self._info_text = [
 			'Server:  % 16.0f FPS' % self.server_fps,
 			'Client:  % 16.0f FPS' % clock.get_fps(),
@@ -673,7 +673,7 @@ def main_loop(args):
 
 
 def main():
-	rospy.init_node('main_carla')
+	# rospy.init_node('main_carla')
 	argparser = argparse.ArgumentParser(
 		description='CARLA Manual Control Client')
 	argparser.add_argument(

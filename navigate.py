@@ -23,19 +23,22 @@ class Navigation(object):
 		print '{}/global_path'.format(self.ns)
 		self.global_path_pub = rospy.Publisher('/{}/get_global_path'.format(self.ns),String,queue_size = 10)
 		time.sleep(0.5)
-		rospy.Subscriber('{}/global_path'.format(self.ns), Path, self.callback_gp)
+		# rospy.Subscriber('{}/global_path'.format(self.ns), Path, self.callback_gp)
 		print "Subscriber started..."
 			
 
 		# self.path_publisher = rospy.Publisher('{}/global_path'.format(self.ns), Path, queue_size = 10)
 
-	def callback_gp(self,data):
-		print "callback_gp called..."
+	# def callback_gp(self,data):
+	# 	print "callback_gp called..."
+	# 	for i in data.poses:
+	# 		self.points.append([i.pose.position.x,i.pose.position.y])
+	def get_points(self):
+		print "waiting for global path..."
+		data = rospy.wait_for_message('{}/global_path'.format(self.ns), Path)
+		
 		for i in data.poses:
 			self.points.append([i.pose.position.x,i.pose.position.y])
-	def get_points(self):
-		# data = rospy.wait_for_message('{}/global_path'.format(self.ns), Path)
-		# print data
 		self.global_path_pub.publish("abc")
 		return np.array(self.points)
 
@@ -45,7 +48,7 @@ def main(argv):
 	# namespace - 'carla'
 	node = Navigation('carla')
 	points = node.get_points()
-	print points
+	# print points
 	controller_object = cn.purePursuit(points)
 	r = rospy.Rate(50)
 
