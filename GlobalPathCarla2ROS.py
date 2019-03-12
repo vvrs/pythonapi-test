@@ -20,6 +20,8 @@ import math
 
 from get_topology import *
 
+plt.ion()
+plt.show()
 
 class globalPathServer(object):
 	"""Global is published everytime there is a request for global path over /get_global_path topic"""
@@ -102,7 +104,8 @@ class globalPathServer(object):
 		plt.plot(dest[0],dest[1],'ro--', linewidth=2, markersize=12)
 
 		plt.plot(self.p[:,0],self.p[:,1])
-		plt.show()
+		plt.draw()
+		plt.pause(0.001)
 
 	@staticmethod
 	def  directionFromTwoPointsQuaternion(p1,p2):

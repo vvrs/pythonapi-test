@@ -80,20 +80,24 @@ class purePursuit:
 
 	def callback_odom(self,data):
 		
-
+		rospy.loginfo(__func__)
 		self.car_current_x = data.pose.pose.position.x
 		self.car_current_y = data.pose.pose.position.y
 
-		self.current_speed = data.twist.linear.x
+		self.current_speed = data.twist.twist.linear.x
 
-		quaternion = data.pose.orientation
-		euler = tf.transformations.euler_from_quaternion(quaternion)
+		quaternion = [data.pose.pose.orientation.x,\
+					   data.pose.pose.orientation.y,\
+					   data.pose.pose.orientation.z,\
+					   data.pose.pose.orientation.w]
+		euler = euler_from_quaternion(quaternion)
+		# euler = tf.transformations.euler_from_quaternion(quaternion)
 		self.car_current_heading = euler[2]
 
 
 	def _controller(self):
 
-		############################### FIX #########################################
+		############################## FIX #########################################
 		data = rospy.wait_for_message("/carla/ego_vehicle/odometry", Odometry)
 
 		# print data
@@ -110,7 +114,7 @@ class purePursuit:
 		euler = euler_from_quaternion(quaternion)
 		# euler = tf.transformations.euler_from_quaternion(quaternion)
 		self.car_current_heading = euler[2]
-		##############################################################################
+		#############################################################################
 
 		path = closestPoint(self.points)
 		ind = path.closest_node((self.car_current_x,self.car_current_y))

@@ -40,7 +40,7 @@ Use ARROWS or WASD keys for control.
 
 from __future__ import print_function
 
-# import rospy
+import rospy
 
 import carla
 from carla import ColorConverter as cc
@@ -641,9 +641,9 @@ def main_loop(args):
 
 		print(snode,dnode)
 
-		# node = globalPathServer(world.world,'carla',snode,dnode)
-		# node.plot()
-		# r = rospy.Rate(10)
+		node = globalPathServer(world.world,'carla',snode,dnode)
+		node.plot()
+		r = rospy.Rate(10)
 		# while not rospy.is_shutdown():
 		while  True:
 			clock = pygame.time.Clock()
@@ -654,7 +654,7 @@ def main_loop(args):
 			world.tick(clock)
 			world.render(display)
 			pygame.display.flip()
-			# r.sleep()
+			r.sleep()
 
 	finally:
 

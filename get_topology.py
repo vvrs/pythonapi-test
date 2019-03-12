@@ -59,6 +59,9 @@ def get_topology(map):
 			x = j.transform.location.x
 			y = j.transform.location.y
 			z = j.transform.location.z
+
+			#logging
+			print x,y,z
 			xs.append(x)
 			ys.append(y)
 			zs.append(z)
@@ -66,6 +69,8 @@ def get_topology(map):
 	ys = np.array(ys).reshape((len(ys),1))
 	zs = np.array(zs).reshape((len(zs),1))
 
+	# logging
+	# print ys,zs
 
 	waypoints = np.hstack((xs,ys,zs))
 
