@@ -62,8 +62,9 @@ class DynamicUpdate():
 
 
 rospy.init_node("plot",anonymous=True)
-position_vector = rospy.wait_for_message("/vehicle/perfect_gps/utm",Vector3Stamped)
-
+position_vector = rospy.wait_for_message("/vehicle/perfect_gps/utm",Odometry)
+self.car_current_x = data.pose.pose.position.x
+        self.car_current_y = data.pose.pose.position.y
 init_x = position_vector.vector.x
 init_y = position_vector.vector.y
 points = points + np.array([init_x,init_y])
@@ -71,7 +72,7 @@ plot = DynamicUpdate(points)
 
 
 while not rospy.is_shutdown():
-    pos=rospy.wait_for_message("/vehicle/perfect_gps/utm",Vector3Stamped)
+    pos=rospy.wait_for_message("/vehicle/perfect_gps/utm",Odometry)
 
     x=pos.vector.x
     y=pos.vector.y

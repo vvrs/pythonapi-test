@@ -61,7 +61,7 @@ def get_topology(map):
 			z = j.transform.location.z
 
 			#logging
-			print x,y,z
+			# print x,y,z
 			xs.append(x)
 			ys.append(y)
 			zs.append(z)

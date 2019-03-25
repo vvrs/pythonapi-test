@@ -77,7 +77,8 @@ class DynamicUpdate():
 		self.ax.autoscale_view()
 		#We need to draw *and* flush
 		self.fig.canvas.draw()
-		self.fig.canvas.flush_events()		
+		self.fig.canvas.flush_events()	
+			
 def main(argv):
 
 	# namespace - 'carla'

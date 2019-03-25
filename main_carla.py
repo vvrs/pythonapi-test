@@ -159,7 +159,10 @@ class World(object):
 			self.player = self.world.try_spawn_actor(blueprint, spawn_point)
 		while self.player is None:
 			spawn_points = self.map.get_spawn_points()
-			spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+			# spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+			spawn_point = carla.Transform(carla.Location(x=97.2789, y=63.1175, z=1.8431), carla.Rotation(pitch=0, yaw=-10.4166, roll=0))
+			print("spawn_point...",spawn_point)
+
 			self.player = self.world.try_spawn_actor(blueprint, spawn_point)
 		# Set up the sensors.
 		self.collision_sensor = CollisionSensor(self.player, self.hud)
@@ -630,7 +633,7 @@ def main_loop(args):
 
 
 		topology,waypoints = get_topology(world.map)
-
+		print(type(topology))
 		graph,id_map = build_graph(topology)
 		points = np.array(id_map.keys())
 		
@@ -704,8 +707,8 @@ def main():
 	argparser.add_argument(
 		'--filter',
 		metavar='PATTERN',
-		default='vehicle.*',
-		help='actor filter (default: "vehicle.lincoln*")')
+		default='vehicle.lin*',
+		help='actor filter (default: "vehicle.lin*")')
 	args = argparser.parse_args()
 
 	args.width, args.height = [int(x) for x in args.res.split('x')]
