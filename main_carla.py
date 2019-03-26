@@ -645,7 +645,7 @@ def main_loop(args):
 		print(snode,dnode)
 
 		node = globalPathServer(world.world,'carla',snode,dnode)
-		node.plot()
+		# node.plot()
 		r = rospy.Rate(10)
 		# while not rospy.is_shutdown():
 		while  True:

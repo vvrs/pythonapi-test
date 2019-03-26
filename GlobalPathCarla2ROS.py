@@ -20,8 +20,8 @@ import math
 
 from get_topology import *
 
-plt.ion()
-plt.show()
+# plt.ion()
+# plt.show()
 
 class globalPathServer(object):
 	"""Global is published everytime there is a request for global path over /get_global_path topic"""
@@ -40,8 +40,18 @@ class globalPathServer(object):
 		self.source = source
 		self.destination = destination
 
-		self.p = get_shortest_path(self.graph, self.source, self.destination) 
-		self.plot()
+		self.p = get_shortest_path(self.graph, self.source, self.destination)
+
+
+		# Because ROS Uses right handed coordinate system
+		# and carla uses left handed coordinated system
+		# https://math.stackexchange.com/questions/2626961/how-to-convert-a-right-handed-coordinate-system-to-left-handed
+				
+		print "shorted path...",self.p 
+		for i in range(len(self.p)):
+			self.p[i][1] = -self.p[i][1]
+		print "shorted path...",self.p 
+		# self.plot()
 		rospy.init_node('{}_path_server'.format(self.ns), anonymous = True)
 		rospy.Subscriber('{}/get_global_path'.format(self.ns), String, self.callback_update)
 		self.path_publisher = rospy.Publisher('{}/global_path'.format(self.ns), Path, queue_size = 10)
@@ -109,7 +119,8 @@ class globalPathServer(object):
 
 	@staticmethod
 	def  directionFromTwoPointsQuaternion(p1,p2):
-		angle_ = np.arctan2(p2[1]-p1[1],p2[0]-p1[0])
+		
+		angle_ = np.arctan2(p2[1]-p1[1],p2[0]-p1[0]) 
 		q = quaternion_from_euler(0, 0, angle_)
 		quat_msg = Quaternion(q[0], q[1], q[2], q[3])
 		return quat_msg

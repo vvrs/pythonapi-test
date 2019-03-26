@@ -71,7 +71,7 @@ class DynamicUpdate():
 		self.xdata.append(x)
 		self.ydata.append(y)
 		self.x = x
-		self.y = y
+		self.y = -y
 		self.lines.set_data(self.xdata,self.ydata)
 		self.ax.relim()
 		self.ax.autoscale_view()

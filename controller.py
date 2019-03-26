@@ -4,10 +4,10 @@ from math import *
 import numpy as np
 import time
 import sys
-
+# import cutils
 
 import rospy
-from std_msgs.msg import String
+from std_msgs.msg import String, Float64
 from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion, Twist
 from nav_msgs.msg import Path, Odometry
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
@@ -17,7 +17,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 global debug
-debug = 1
+debug = 0
 class closestPoint:
 	def __init__(self, points):
 		self.points = points
@@ -48,12 +48,12 @@ class purePursuit:
 		time.sleep(0.5)
 		# rospy.init_node("purePursuit_node",anonymous=True)
 
-		self.look_ahead_distance = 10
+		self.look_ahead_distance = 5
 
-		self.target_speed = 1
+		self.target_speed = 5
 
-		self.k = 0.1
-		self.kp = 1
+		self.k = 0.
+		self.kp = 0.2
 
 		self.init_xy = False
 		self.init_heading = False
@@ -72,19 +72,24 @@ class purePursuit:
 		# Initialize vehicle controller message
 		# data = rospy.wait_for_message("/carla/ego_vehicle/odometry", Odometry)
 		# print data
-		# rospy.Subscriber("/carla/ego_vehicle/odometry", Odometry, self.callback_odom)
+		rospy.Subscriber("/carla/ego_vehicle/odometry", Odometry, self.callback_odom)
 		self.cmd_pub = rospy.Publisher('/carla/ego_vehicle/ackermann_cmd', AckermannDrive, queue_size=1)
+
+		self.goalxpub = rospy.Publisher('/goalx',Float64, queue_size=10)
+		self.goalypub = rospy.Publisher('/goaly',Float64, queue_size=10)
 
 		self.points = points
 		
 
 	def callback_odom(self,data):
 		
-		rospy.loginfo(__func__)
+		# rospy.loginfo(__func__)
 		self.car_current_x = data.pose.pose.position.x
 		self.car_current_y = data.pose.pose.position.y
 
-		self.current_speed = data.twist.twist.linear.x
+		current_speed_x = data.twist.twist.linear.x
+		current_speed_y = data.twist.twist.linear.y
+		self.current_speed = np.sqrt(current_speed_x**2 + current_speed_y**2)
 
 		quaternion = [data.pose.pose.orientation.x,\
 					   data.pose.pose.orientation.y,\
@@ -98,22 +103,24 @@ class purePursuit:
 	def _controller(self):
 
 		############################## FIX #########################################
-		data = rospy.wait_for_message("/carla/ego_vehicle/odometry", Odometry)
+		# data = rospy.wait_for_message("/carla/ego_vehicle/odometry", Odometry)
 
-		# print data
+		# # print data
 
-		self.car_current_x = data.pose.pose.position.x
-		self.car_current_y = data.pose.pose.position.y
+		# self.car_current_x = data.pose.pose.position.x
+		# self.car_current_y = data.pose.pose.position.y
 
-		self.current_speed = data.twist.twist.linear.x
+		# current_speed_x = data.twist.twist.linear.x
+		# current_speed_y = data.twist.twist.linear.y
+		# self.current_speed = np.sqrt(current_speed_x**2 + current_speed_y**2)
 
-		quaternion = [data.pose.pose.orientation.x,\
-					   data.pose.pose.orientation.y,\
-					   data.pose.pose.orientation.z,\
-					   data.pose.pose.orientation.w]
-		euler = euler_from_quaternion(quaternion)
-		# euler = tf.transformations.euler_from_quaternion(quaternion)
-		self.car_current_heading = euler[2]
+		# quaternion = [data.pose.pose.orientation.x,\
+		# 			   data.pose.pose.orientation.y,\
+		# 			   data.pose.pose.orientation.z,\
+		# 			   data.pose.pose.orientation.w]
+		# euler = euler_from_quaternion(quaternion)
+		# # euler = tf.transformations.euler_from_quaternion(quaternion)
+		# self.car_current_heading = euler[2]
 		#############################################################################
 
 		path = closestPoint(self.points)
@@ -139,25 +146,27 @@ class purePursuit:
 		near_x = self.points[(ind)%len(self.points)][0]
 		near_y = self.points[(ind)%len(self.points)][1]
 
-		# self.goalxpub.publish(goal_x)
-		# self.goalypub.publish(goal_y)
+		self.goalxpub.publish(goal_x)
+		self.goalypub.publish(goal_y)
 
 		distance = sqrt((self.car_current_x-goal_x)**2 + (self.car_current_y-goal_y)**2)
+		distance_final = sqrt((self.car_current_x-self.points[-1][0])**2 + (self.car_current_y-self.points[-1][1])**2)
 		distance2 = sqrt((near_x-goal_x)**2 + (near_y-goal_y)**2)
-
-		print "Car current position :: ",self.car_current_x,self.car_current_y
-		print "Goal position :: ",goal_x,goal_y
-		print "Nearest point on the path:: ",near_x,near_y
-		print "Distance to goal :: ",distance
-		print "Look ahead distance:: ",distance2
+		print "distance_final : ",distance_final
 
 		desired_pose = atan2((goal_y-self.car_current_y),(goal_x-self.car_current_x))
 
-		print "desired_pose:: {0} ({1}) ".format(desired_pose,degrees(desired_pose))
-		print "current heading:: {0} ({1}) ".format(self.car_current_heading,degrees(self.car_current_heading))
 		error = (desired_pose - self.car_current_heading)
 
-		print "heading error:: {0} ({1}) ".format(error,degrees(error))
+		if debug:
+			print "Car current position :: ",self.car_current_x,self.car_current_y
+			print "Goal position :: ",goal_x,goal_y
+			print "Nearest point on the path:: ",near_x,near_y
+			print "Distance to goal :: ",distance
+			print "Look ahead distance:: ",distance2
+			print "desired_pose:: {0} ({1}) ".format(desired_pose,degrees(desired_pose))
+			print "current heading:: {0} ({1}) ".format(self.car_current_heading,degrees(self.car_current_heading))
+			print "heading error:: {0} ({1}) ".format(error,degrees(error))
 
 		# if error < -3.14159:
 		# 	# print "error is below -pi"
@@ -172,8 +181,11 @@ class purePursuit:
 		L = 2.6
 		ld = 10
 		kl = 1
-		self.throttle = self._PIDControl(self.target_speed,self.current_speed)
+		# self.throttle = self._PIDControl(self.target_speed,self.current_speed)
 		# self.throttle = min(self.throttle,0.2)
+		if(distance_final < 1):
+			self.throttle = 0;
+		self.throttle = 5;
 		# self.steering = np.arctan(2*L*sin(error)/(kl*self.throttle))
 		self.steering_ratio = 1
 		self.steering = self.steering_ratio * np.arctan2(2*L*sin(error),Lf)
@@ -181,6 +193,9 @@ class purePursuit:
 
 
 	def _PIDControl(self,target, current):
+		print "\n"
+		print "_PIDControl: ", target-current
+		print "\n"
 		a = self.kp * (target - current)
 		return a
 
@@ -191,7 +206,8 @@ class purePursuit:
 		ai = self.throttle
 		di = self.steering 
 
-		print "throttle and steering angle :: ",ai,di
+		# print "throttle and steering angle :: ",di
+		print "speed and steering angle :: ",ai,di
 		print "\n\n"
 
 		ackermann_cmd_msg = AckermannDrive()
