@@ -646,7 +646,7 @@ def main_loop(args):
 
 		print(snode,dnode)
 
-		node = globalPathServer(world.world,'carla',snode,dnode)
+		node = globalPathServer(world.world,world.player,'carla',snode,dnode)
 		# node.plot()
 		# r = rospy.Rate(10)
 		clock = pygame.time.Clock()

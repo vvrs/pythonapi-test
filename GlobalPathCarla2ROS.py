@@ -26,16 +26,14 @@ from get_topology import *
 
 class globalPathServer(object):
 	"""Global is published everytime there is a request for global path over /get_global_path topic"""
-	def __init__(self, world = " ", ns = " ",source=0,destination=14):
+	def __init__(self, world = " ", player = " ", ns = " ",source=0,destination=14):
 		# super(GlobalPathServer, self).__init__()
 
 		self.ns = ns
 		# Get topology from the map
 		_map = world.get_map()
 
-		actor_list=world.get_actors()
-		for actor in actor_list.filter('vehicle.lincoln.mkz2017'):
-			self.player = actor
+		self.player = player 
 		self.throttle = 0
 		self.brake = 0
 		self.steering = 0
