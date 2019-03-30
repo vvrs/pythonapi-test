@@ -646,10 +646,11 @@ def main_loop(args):
 
 		node = globalPathServer(world.world,'carla',snode,dnode)
 		# node.plot()
-		r = rospy.Rate(10)
-		# while not rospy.is_shutdown():
-		while  True:
-			clock = pygame.time.Clock()
+		# r = rospy.Rate(10)
+		clock = pygame.time.Clock()
+		while not rospy.is_shutdown():
+		# while  True:
+			
 			clock.tick_busy_loop(60)
 			# # if controller.parse_events(client, world, clock):
 			# #     return
@@ -657,7 +658,7 @@ def main_loop(args):
 			world.tick(clock)
 			world.render(display)
 			pygame.display.flip()
-			r.sleep()
+			# r.sleep()
 
 	finally:
 
