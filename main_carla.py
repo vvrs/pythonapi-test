@@ -59,6 +59,7 @@ import re
 import weakref
 
 
+
 try:
 	import pygame
 	from pygame.locals import KMOD_CTRL
@@ -147,7 +148,8 @@ class World(object):
 		blueprint = random.choice(self.world.get_blueprint_library().filter(self._actor_filter))
 		blueprint.set_attribute('role_name', 'hero')
 		if blueprint.has_attribute('color'):
-			color = random.choice(blueprint.get_attribute('color').recommended_values)
+			# color = random.choice(blueprint.get_attribute('color').recommended_values)
+			color = '50,50,50'
 			blueprint.set_attribute('color', color)
 		# Spawn the player.
 		if self.player is not None:
@@ -158,7 +160,7 @@ class World(object):
 			self.destroy()
 			self.player = self.world.try_spawn_actor(blueprint, spawn_point)
 		while self.player is None:
-			spawn_points = self.map.get_spawn_points()
+			# spawn_points = self.map.get_spawn_points()
 			# spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
 			spawn_point = carla.Transform(carla.Location(x=97.2789, y=63.1175, z=1.8431), carla.Rotation(pitch=0, yaw=-10.4166, roll=0))
 			print("spawn_point...",spawn_point)
@@ -651,10 +653,11 @@ def main_loop(args):
 		while not rospy.is_shutdown():
 		# while  True:
 			
-			clock.tick_busy_loop(60)
+			clock.tick_busy_loop(20)
 			# # if controller.parse_events(client, world, clock):
 			# #     return
 			# print('render...')
+			node.apply_control()
 			world.tick(clock)
 			world.render(display)
 			pygame.display.flip()

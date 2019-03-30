@@ -3,6 +3,7 @@ import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion, Twist
 from nav_msgs.msg import Path
+from dbw_mkz_msgs.msg import ThrottleCmd,BrakeCmd,SteeringCmd
 from tf.transformations import quaternion_from_euler
 
 import carla
@@ -32,6 +33,13 @@ class globalPathServer(object):
 		# Get topology from the map
 		_map = world.get_map()
 
+		actor_list=world.get_actors()
+		for actor in actor_list.filter('vehicle.lincoln.mkz2017'):
+			self.player = actor
+		self.throttle = 0
+		self.brake = 0
+		self.steering = 0
+
 		# Build waypoint graph
 		topology,waypoints = get_topology(_map)
 		self.graph,self.id_map = build_graph(topology)
@@ -54,9 +62,15 @@ class globalPathServer(object):
 		# self.plot()
 		rospy.init_node('{}_path_server'.format(self.ns), anonymous = True)
 		rospy.Subscriber('{}/get_global_path'.format(self.ns), String, self.callback_update)
+		rospy.Subscriber('carla/ThrottleCmd', ThrottleCmd, self.callback_throttle)
+		rospy.Subscriber('carla/BrakeCmd', BrakeCmd, self.callback_brake)
+		rospy.Subscriber('carla/SteeringCmd', SteeringCmd, self.callback_steering)
+
 		self.path_publisher = rospy.Publisher('{}/global_path'.format(self.ns), Path, queue_size = 10)
 
 		self.path = Path()
+
+
 
 
 	def makePathMessage(self):
@@ -102,6 +116,23 @@ class globalPathServer(object):
 	def callback_update(self, data):
 		self.makePathMessage()
 		self.path_publisher.publish(self.path)
+
+	def callback_throttle(self, msg):
+		self.throttle=msg.pedal_cmd
+		if(self.throttle>0):
+			self.brake = 0
+
+	def callback_brake(self, msg):
+		self.brake = msg.pedal_cmd
+		if(self.brake>0):
+			self.throttle = 0
+
+	def callback_steering(self, msg):
+		self.steering = msg.steering_wheel_angle_cmd
+
+	def apply_control(self):
+		control_cmd = carla.VehicleControl(throttle=self.throttle,brake=self.brake,steer=self.steering)
+		self.player.apply_control(control_cmd)
 
 	def plot(self):
 		mapk = self.id_map.keys()
