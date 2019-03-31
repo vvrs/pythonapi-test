@@ -1,38 +1,55 @@
 <launch>
-  <param name="/use_sim_time" value="false" />
+	<param name="/use_sim_time" value="false" />
 
 
-  <node pkg="mkz_planner" type="test_costmap" name="test_costmap" ns = "mkz_planner" output="screen">
-	  <remap from="/output_costmap" to="/carla/costmap"/>
-  </node>
+	<node pkg="mkz_planner" type="test_costmap" name="test_costmap" ns = "mkz_planner" output="screen">
+		<remap from="/output_costmap" to="/carla/costmap"/>
+	</node>
 
 
 
-  <node pkg="mkz_planner" type="goal_pose" name="goal_pose" ns = "mkz_planner" output="screen">
-	  <remap from="/input_odom_utm" to="/carla/odom"/>
-	  <remap from="/input_route" to="/carla/global_path"/>
-	  <remap from="/input_costmap" to="/carla/costmap"/>
-	  <remap from="/output_pose" to="/carla/goal_pose"/>
-	  <remap from="/output_pcl" to="/carla/goal_pose_pcl"/>
-	  <remap from="/output_path" to="/carla/path_local"/>
-	  
-	  
-	  <param name="publisher_loop_rate" type="double" value="10.0"/>
-	  <param name="flag_publish_pcl" type="double" value="0.0"/>
+	<node pkg="mkz_planner" type="goal_pose" name="goal_pose" ns = "mkz_planner" output="screen">
+		<remap from="/input_odom_utm" to="/carla/odom"/>
+		<remap from="/input_route" to="/carla/global_path"/>
+		<remap from="/input_costmap" to="/carla/costmap"/>
+		<remap from="/output_pose" to="/carla/goal_pose"/>
+		<remap from="/output_pcl" to="/carla/goal_pose_pcl"/>
+		<remap from="/output_path" to="/carla/path_local"/>
+
+
+		<param name="publisher_loop_rate" type="double" value="10.0"/>
+		<param name="flag_publish_pcl" type="double" value="0.0"/>
 		<param name="debug" type="double" value="0.0"/>
-	  
-  </node>
 
-  <node pkg="mkz_planner" type="mkz_traj_planner_purepursuit" name="mkz_traj_planner_purepursuit" ns = "mkz_planner" output="screen">
-	  <remap from="/input_goal_pose" to="/carla/path_local"/>
-	  <remap from="/output_traj" to="/carla/traj"/>
+	</node>
 
-	  <param name="max_speed" type="double" value="8.0"/>
-	  <param name="publisher_loop_rate" type="double" value="10.0"/>
+	<!-- <node pkg="mkz_planner" type="mkz_traj_planner_purepursuit" name="mkz_traj_planner_purepursuit" ns = "mkz_planner" output="screen">
+		<remap from="/input_goal_pose" to="/carla/path_local"/>
+		<remap from="/output_traj" to="/carla/traj"/>
+
+		<param name="max_speed" type="double" value="8.0"/>
+		<param name="publisher_loop_rate" type="double" value="10.0"/>
 		<param name="debug" type="double" value="1.0"/>
-  </node>	
+	</node>	 -->
 
-  <node pkg="mkz_controller" type="mkz_controller" name="mkz_controller" output="screen">
+
+	<node pkg="mkz_planner" type="mkz_traj_planner_LQR" name="mkz_traj_planner_LQR" ns = "mkz_planner" output="screen">
+		<remap from="/input_goal_pose" to="/carla/path_local"/>
+		<remap from="/input_vehicle_speed" to="/carla/speed" />
+
+		<remap from="/output_traj" to="/carla/traj"/>
+		<remap from="/output_errorPose" to="/carla/errorPose"/>
+
+		<param name="max_speed" type="double" value="15.0"/>
+		<param name="K_x" type="double" value="0.00"/>
+		<param name="K_y" type="double" value="0.04"/>
+		<param name="K_theta" type="double" value="0.5"/>
+		<param name="debug" type="double" value="0.0"/>
+
+	</node>
+
+
+	<node pkg="mkz_controller" type="mkz_controller" name="mkz_controller" output="screen">
 		<remap from="/input_twist_desired" to="/carla/traj" />
 		<remap from="/input_gear_report" to="/carla/gear_report" />
 		<remap from="/input_brake_report" to="/carla/brake_report" />
@@ -43,15 +60,15 @@
 		<remap from="/vehicle/gear_cmd" to="/carla/gear_cmd" />
 		<remap from="/vehicle/brake_cmd" to="/carla/BrakeCmd" />
 		<remap from="/vehicle/throttle_cmd" to="/carla/ThrottleCmd" />
-	  
+
 		<param name="publisher_loop_rate" type="double" value="10.0"/>
-		<param name="K_speed" type="double" value="0.1"/>
-		<param name="K_brake" type="double" value="0.1"/>
+		<param name="K_speed" type="double" value="0.05"/>
+		<param name="K_brake" type="double" value="0.05"/>
 		<param name="K_steering" type="double" value="1.0"/>
-		<param name="debug" type="double" value="0.0"/>
+		<param name="debug" type="double" value="1.0"/>
 		<param name="carla" type="double" value="1.0"/>
 
-  </node>
+	</node>
 
 
 </launch>

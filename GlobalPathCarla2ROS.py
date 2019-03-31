@@ -158,7 +158,7 @@ class globalPathServer(object):
 
 	def publish_speed(self,speed):
 		twist = TwistStamped()
-		twist.twist.linear.x = speed/3.6
+		twist.twist.linear.x = speed
 		self.speed_publisher.publish(twist)
 
 	def plot(self):
