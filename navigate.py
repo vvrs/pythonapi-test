@@ -22,7 +22,7 @@ class Navigation(object):
 		self.points = []
 
 		rospy.init_node('{}_navigation_node'.format(self.ns), anonymous = True)
-		print '{}/global_path'.format(self.ns)
+		print("carla/global_path")
 		self.global_path_pub = rospy.Publisher('/{}/get_global_path'.format(self.ns),String,queue_size = 10)
 		time.sleep(0.5)
 		# rospy.Subscriber('{}/global_path'.format(self.ns), Path, self.callback_gp)
@@ -36,7 +36,7 @@ class Navigation(object):
 	# 	for i in data.poses:
 	# 		self.points.append([i.pose.position.x,i.pose.position.y])
 	def get_points(self):
-		print "waiting for global path..."
+		print("waiting for global path...")
 		data = rospy.wait_for_message('{}/global_path'.format(self.ns), Path)
 		
 		for i in data.poses:

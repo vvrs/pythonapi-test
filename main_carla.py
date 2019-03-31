@@ -163,7 +163,7 @@ class World(object):
 			# spawn_points = self.map.get_spawn_points()
 			# spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
 			spawn_point = carla.Transform(carla.Location(x=97.2789, y=63.1175, z=1.8431), carla.Rotation(pitch=0, yaw=-10.4166, roll=0))
-			print("spawn_point...",spawn_point)
+			# print("spawn_point...",spawn_point)
 
 			self.player = self.world.try_spawn_actor(blueprint, spawn_point)
 		# Set up the sensors.
@@ -635,7 +635,7 @@ def main_loop(args):
 
 
 		topology,waypoints = get_topology(world.map)
-		print(type(topology))
+		# print(type(topology))
 		graph,id_map = build_graph(topology)
 		points = np.array(id_map.keys())
 		
@@ -644,7 +644,7 @@ def main_loop(args):
 		snode = id_map[tuple(points[ind])]
 		dnode = id_map[random.choice(id_map.keys())]
 
-		print(snode,dnode)
+		# print(snode,dnode)
 
 		node = globalPathServer(world.world,world.player,'carla',snode,dnode)
 		# node.plot()
@@ -654,9 +654,13 @@ def main_loop(args):
 		# while  True:
 			
 			clock.tick_busy_loop(20)
-			# # if controller.parse_events(client, world, clock):
-			# #     return
-			# print('render...')
+			odom = world.player.get_transform()
+			# print(odom.location)
+			velocity = world.player.get_velocity()
+			speed = np.linalg.norm([velocity.x,velocity.y,velocity.z])
+			node.publish_odom(odom)
+			node.publish_speed(speed)
+			node.publish_path()
 			node.apply_control()
 			world.tick(clock)
 			world.render(display)

@@ -1,9 +1,11 @@
 
 import rospy
 from std_msgs.msg import String
-from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion, Twist
+from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion, Twist, PoseWithCovariance, TwistStamped
 from nav_msgs.msg import Path
 from dbw_mkz_msgs.msg import ThrottleCmd,BrakeCmd,SteeringCmd
+from nav_msgs.msg import Odometry
+
 from tf.transformations import quaternion_from_euler
 
 import carla
@@ -53,10 +55,10 @@ class globalPathServer(object):
 		# and carla uses left handed coordinated system
 		# https://math.stackexchange.com/questions/2626961/how-to-convert-a-right-handed-coordinate-system-to-left-handed
 				
-		print "shorted path...",self.p 
+		# print "shorted path...",self.p 
 		for i in range(len(self.p)):
 			self.p[i][1] = -self.p[i][1]
-		print "shorted path...",self.p 
+		# print "shorted path...",self.p 
 		# self.plot()
 		rospy.init_node('{}_path_server'.format(self.ns), anonymous = True)
 		rospy.Subscriber('{}/get_global_path'.format(self.ns), String, self.callback_update)
@@ -65,8 +67,11 @@ class globalPathServer(object):
 		rospy.Subscriber('carla/SteeringCmd', SteeringCmd, self.callback_steering)
 
 		self.path_publisher = rospy.Publisher('{}/global_path'.format(self.ns), Path, queue_size = 10)
+		self.odom_publisher = rospy.Publisher('{}/odom'.format(self.ns), Odometry, queue_size = 10)
+		self.speed_publisher = rospy.Publisher('{}/speed'.format(self.ns), TwistStamped, queue_size = 10)
 
 		self.path = Path()
+		self.makePathMessage()
 
 
 
@@ -80,7 +85,7 @@ class globalPathServer(object):
 		# frame_id - global
 		
 		poses = []
-		for i in range(len(carla_path)-1):
+		for i in range(min(len(carla_path)-1,9000)):
 
 			# posestamped required header to be set... 
 			# Sequence Number - increase every time this function is called
@@ -103,8 +108,8 @@ class globalPathServer(object):
 		pose = Pose()
 		pose.position.x = carla_path[-1][0]
 		pose.position.y = carla_path[-1][1]
-		pose.position.z = 0;
-		pose.orientation = self.directionFromTwoPointsQuaternion(carla_path[-1],carla_path[-1])
+		pose.position.z = 0
+		pose.orientation = self.directionFromTwoPointsQuaternion(carla_path[-2],carla_path[-1])
 		posestamped.pose = pose
 
 		poses.append(posestamped)
@@ -126,11 +131,35 @@ class globalPathServer(object):
 			self.throttle = 0
 
 	def callback_steering(self, msg):
-		self.steering = msg.steering_wheel_angle_cmd
+		self.steering = - msg.steering_wheel_angle_cmd/8.2
 
 	def apply_control(self):
 		control_cmd = carla.VehicleControl(throttle=self.throttle,brake=self.brake,steer=self.steering)
 		self.player.apply_control(control_cmd)
+
+	def publish_odom(self,odom):
+		out_odom = Odometry()
+		out_odom.pose.pose.position.x = odom.location.x
+		out_odom.pose.pose.position.y = -odom.location.y
+		out_odom.pose.pose.position.z = odom.location.z
+
+		quat = quaternion_from_euler(odom.rotation.roll/180*np.pi,odom.rotation.pitch/180*np.pi,-odom.rotation.yaw/180*np.pi)
+		# quat = quaternion_from_euler(0,0,-odom.rotation.yaw/180*np.pi)
+		# print(odom.rotation.yaw/180*np.pi)
+		out_odom.pose.pose.orientation.x = quat[0]
+		out_odom.pose.pose.orientation.y = quat[1]
+		out_odom.pose.pose.orientation.z = quat[2]
+		out_odom.pose.pose.orientation.w = quat[3]
+
+		self.odom_publisher.publish(out_odom)
+
+	def publish_path(self):
+		self.path_publisher.publish(self.path)
+
+	def publish_speed(self,speed):
+		twist = TwistStamped()
+		twist.twist.linear.x = speed/3.6
+		self.speed_publisher.publish(twist)
 
 	def plot(self):
 		mapk = self.id_map.keys()
