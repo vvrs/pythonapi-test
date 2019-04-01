@@ -167,6 +167,7 @@ class World(object):
 
 			self.player = self.world.try_spawn_actor(blueprint, spawn_point)
 		# Set up the sensors.
+		self.LiDAR_sensor = LiDAR_Sensor(self.player)
 		self.collision_sensor = CollisionSensor(self.player, self.hud)
 		self.lane_invasion_sensor = LaneInvasionSensor(self.player, self.hud)
 		self.gnss_sensor = GnssSensor(self.player)
@@ -201,6 +202,7 @@ class World(object):
 			self.collision_sensor.sensor,
 			self.lane_invasion_sensor.sensor,
 			self.gnss_sensor.sensor,
+			self.LiDAR_sensor.sensor,
 			self.player]
 		for actor in actors:
 			if actor is not None:
@@ -494,6 +496,44 @@ class GnssSensor(object):
 
 
 # ==============================================================================
+# -- LiDAR Sensor --------------------------------------------------------
+# ==============================================================================
+
+
+class LiDAR_Sensor(object):
+	def __init__(self, parent_actor):
+		self.sensor = None
+		self._parent = parent_actor
+		self.points = None
+		world = self._parent.get_world()
+		bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
+		bp.set_attribute('channels','16')
+		bp.set_attribute('range','8000')
+		bp.set_attribute('upper_fov','15.0')
+		bp.set_attribute('lower_fov','-15.0')
+		bp.set_attribute('sensor_tick','0.1')
+		# bp.set_attribute('points_per_second','36000')
+		self.sensor = world.spawn_actor(bp, carla.Transform(carla.Location(x=1, z=1.7)), attach_to=self._parent)
+		# print(self.position)
+		# We need to pass the lambda a weak reference to self to avoid circular
+		# reference.
+		weak_self = weakref.ref(self)
+		self.sensor.listen(lambda event: LiDAR_Sensor._on_obst_event(weak_self, event))
+
+	@staticmethod
+	def _on_obst_event(weak_self, lidar_measurement):
+		self = weak_self()
+		if not self:
+			return
+		# print(lidar_measurement[0].x)
+		if len(lidar_measurement):
+			self.points = lidar_measurement
+		else:
+			self.points = None
+		# self.lat = event.latitude
+		# self.lon = event.longitude
+
+# ==============================================================================
 # -- CameraManager -------------------------------------------------------------
 # ==============================================================================
 
@@ -661,6 +701,7 @@ def main_loop(args):
 			node.publish_odom(odom)
 			node.publish_speed(speed)
 			node.publish_path()
+			node.publish_LiDAR(world.LiDAR_sensor.points)
 			node.apply_control()
 			world.tick(clock)
 			world.render(display)

@@ -2,10 +2,9 @@
 import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion, Twist, PoseWithCovariance, TwistStamped
-from nav_msgs.msg import Path
+from nav_msgs.msg import Path, Odometry
+from sensor_msgs.msg import PointCloud2, PointField
 from dbw_mkz_msgs.msg import ThrottleCmd,BrakeCmd,SteeringCmd
-from nav_msgs.msg import Odometry
-
 from tf.transformations import quaternion_from_euler
 
 import carla
@@ -13,6 +12,7 @@ import time
 import random 
 import sys
 import threading
+import itertools
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -77,6 +77,7 @@ class globalPathServer(object):
 		self.path_publisher = rospy.Publisher('{}/global_path'.format(self.ns), Path, queue_size = 10)
 		self.odom_publisher = rospy.Publisher('{}/odom'.format(self.ns), Odometry, queue_size = 10)
 		self.speed_publisher = rospy.Publisher('{}/speed'.format(self.ns), TwistStamped, queue_size = 10)
+		self.LiDAR_publisher = rospy.Publisher('{}/LiDAR'.format(self.ns), PointCloud2, queue_size = 10)
 
 		self.path = Path()
 		self.makePathMessage()
@@ -168,6 +169,23 @@ class globalPathServer(object):
 		twist = TwistStamped()
 		twist.twist.linear.x = speed
 		self.speed_publisher.publish(twist)
+
+	def publish_LiDAR(self,points):
+		msg = PointCloud2()
+		msg.height = 1
+		msg.width = len(points)
+		msg.fields = [PointField('x', 0, PointField.FLOAT32, 1),
+			PointField('y', 4, PointField.FLOAT32, 1),
+			PointField('z', 8, PointField.FLOAT32, 1)]
+		msg.is_bigendian = False
+		msg.point_step = 12
+		msg.row_step = msg.point_step * len(points)
+		pc = np.zeros([len(points),3]).astype(np.float32)
+		for row, pt in itertools.izip(pc, points):
+			row[:] = [pt.x,-pt.y,-pt.z]
+		msg.data = pc.tostring()
+		msg.header.frame_id = 'map'
+		self.LiDAR_publisher.publish(msg)
 
 	def plot(self):
 		mapk = self.id_map.keys()
