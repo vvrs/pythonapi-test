@@ -50,6 +50,14 @@ class globalPathServer(object):
 
 		self.p = get_shortest_path(self.graph, self.source, self.destination)
 
+		for i in range(self.p.shape[0]):
+			wp = carla.Location(self.p[i][0],self.p[i][1],self.p[i][2])
+			world.debug.draw_point(wp, size=0.1, color=carla.Color(0, 255, 0), life_time=300.0,persistent_lines=True)
+		# print(wp)
+
+
+
+
 
 		# Because ROS Uses right handed coordinate system
 		# and carla uses left handed coordinated system
