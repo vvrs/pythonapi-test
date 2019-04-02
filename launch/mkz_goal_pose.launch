@@ -34,7 +34,7 @@
 
 
 	<node pkg="mkz_planner" type="mkz_traj_planner_LQR" name="mkz_traj_planner_LQR" ns = "mkz_planner" output="screen">
-		<remap from="/input_goal_pose" to="/carla/path_local"/>
+		<remap from="/input_local_path" to="/carla/path_local"/>
 		<remap from="/input_vehicle_speed" to="/carla/speed" />
 
 		<remap from="/output_traj" to="/carla/traj"/>
