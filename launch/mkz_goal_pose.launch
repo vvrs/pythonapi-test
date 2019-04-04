@@ -8,7 +8,7 @@
 
 
 
-	<node pkg="mkz_planner" type="goal_pose" name="goal_pose" ns = "mkz_planner" output="screen">
+	<node pkg="mkz_planner" type="mkz_local_planner" name="mkz_local_planner" ns = "mkz_planner" output="screen">
 		<remap from="/input_odom_utm" to="/carla/odom"/>
 		<remap from="/input_route" to="/carla/global_path"/>
 		<remap from="/input_costmap" to="/carla/costmap"/>
@@ -44,7 +44,7 @@
 		<param name="K_x" type="double" value="0.00"/>
 		<param name="K_y" type="double" value="0.04"/>
 		<param name="K_theta" type="double" value="0.3"/>
-		<param name="debug" type="double" value="1.0"/>
+		<param name="debug" type="double" value="0.0"/>
 
 	</node>
 
